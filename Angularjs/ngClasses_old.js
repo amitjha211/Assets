@@ -4,13 +4,16 @@
 
 //ActionName, deleteActionName, PrimaryKeyField
 
-function ngGrid($http, sGetPath) {
+function ngGrid($http, ModuleName, sSubModuleName) {
 
 
     var grid = this;
+    var subModuleName = sSubModuleName;
 
-    grid.getPath = sGetPath;
-    
+
+    grid.ModuleName = ModuleName;
+    grid.SubModuleName = sSubModuleName;
+
     //Ajax loader
     grid.beforeLoad = [];
     grid.afterLoad = [];
@@ -243,8 +246,8 @@ function ngGrid($http, sGetPath) {
 
         _beforeLoad();
         grid.busy = true;
-        
-        ng.execGrid($http, sGetPath, this.pageIndex, this.pageIndex * this.pageSize, this.pageSize, jnPost, function (data) {
+
+        ng.execGrid($http, ModuleName, subModuleName, this.pageIndex, this.pageIndex * this.pageSize, this.pageSize, jnPost, function (data) {
             grid.rows = data.data;
             grid.count = data.recordsTotal;
             if ($.isFunction(callBack)) callBack();
@@ -275,7 +278,7 @@ function ngGrid($http, sGetPath) {
 
         _beforeLoad();
 
-        ng.execJson($http, sGetPath, jnPost, function (data) {
+        ng.execJson($http, ModuleName, subModuleName, jnPost, function (data) {
             if (angular.isArray(data)) {
                 grid.rows = data;
                 grid.count = data.length;
@@ -299,7 +302,7 @@ function ngGrid($http, sGetPath) {
         jnPost[this.PrimaryKeyField] = iId;
 
         _beforeLoad();
-        ng.execJson($http, sGetPath, jnPost, function (data) {
+        ng.execJson($http, ModuleName, subModuleName, jnPost, function (data) {
             if (data.length > 0) {
                 grid.row = data[0];
                 if ($.isFunction(callback)) callback();
@@ -312,7 +315,7 @@ function ngGrid($http, sGetPath) {
     this.selectByFilter = function (filterData, callback, e) {
         _beforeLoad();
         grid.busy = true;
-        ng.execJson($http, sGetPath, filterData, function (data) {
+        ng.execJson($http, ModuleName, subModuleName, filterData, function (data) {
             if (data.length > 0) {
                 grid.row = data[0];
                 if ($.isFunction(callback)) callback();
@@ -329,9 +332,12 @@ function ngGrid($http, sGetPath) {
 
 //
 
-function ngCRUD($http, sGetPath,sSavePath,sDeletePath, PrimaryKeyField) {
+function ngCRUD($http, ModuleName, subModuleName, ActionName, deleteActionName, PrimaryKeyField) {
 
-    var grd = new ngGrid($http, sGetPath);
+    var grd = new ngGrid($http, ModuleName, subModuleName);
+
+    
+
 
     grd.PrimaryKeyField = PrimaryKeyField == undefined ? ModuleName + "ID" : PrimaryKeyField;
 
@@ -360,7 +366,7 @@ function ngCRUD($http, sGetPath,sSavePath,sDeletePath, PrimaryKeyField) {
 
         r = row == undefined || row == null ? grd.row : row;
 
-        ng.UpdateModule($http, sAction, r, function (status, data) {
+        ng.UpdateModule($http, ModuleName, sAction, r, function (status, data) {
             if (status == "success") {
 
                 //grd.formClear();
@@ -392,7 +398,7 @@ function ngCRUD($http, sGetPath,sSavePath,sDeletePath, PrimaryKeyField) {
             if (!grd.beforeSave()) return false;
         }
 
-        ng.UpdateModule($http, sSavePath, grd.row, function (status, data, info) {
+        ng.UpdateModule($http, ModuleName, ActionName, grd.row, function (status, data, info) {
             
             if (status == "success") {
 
@@ -431,7 +437,7 @@ function ngCRUD($http, sGetPath,sSavePath,sDeletePath, PrimaryKeyField) {
 
     grd.del = function (r, callBack, e) {
         if (!confirm("Are you sure want to delete selected record ?")) return;
-        ng.UpdateModule($http, sDeletePath, { id : r[PrimaryKeyField] }, function (status) {
+        ng.UpdateModule($http, ModuleName, deleteActionName, { id : r[PrimaryKeyField] }, function (status) {
 
             if (status == "success") {
                 //if (callBack != undefined) grid.load();
@@ -450,6 +456,5 @@ function ngCRUD($http, sGetPath,sSavePath,sDeletePath, PrimaryKeyField) {
 
     return grd;
 }
-
 
 
